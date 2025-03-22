@@ -1,0 +1,296 @@
+{% extends 'base.html' %}
+
+{% block title %}任务管理 - 任务管理系统{% endblock %}
+
+{% block content %}
+<div class="tasks-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>任务管理</h1>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newTaskModal">
+            <i class="fas fa-plus me-1"></i> 新建任务
+        </button>
+    </div>
+
+    <!-- 任务筛选 -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-2">
+                <div class="col-md-4">
+                    <select class="form-select" id="statusFilter">
+                        <option value="all">所有状态</option>
+                        <option value="pending">待处理</option>
+                        <option value="in_progress">进行中</option>
+                        <option value="completed">已完成</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" id="priorityFilter">
+                        <option value="all">所有优先级</option>
+                        <option value="high">高</option>
+                        <option value="medium">中</option>
+                        <option value="low">低</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control" id="searchTask" placeholder="搜索任务...">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 任务列表 -->
+    <div class="card">
+        <div class="card-body">
+            {% if tasks %}
+            <div class="table-responsive">
+                <table class="table table-hover" id="taskTable">
+                    <thead>
+                        <tr>
+                            <th>标题</th>
+                            <th>优先级</th>
+                            <th>状态</th>
+                            <th>截止日期</th>
+                            <th>项目</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for task in tasks %}
+                        <tr class="task-row" data-status="{{ task.status }}" data-priority="{{ task.priority }}">
+                            <td>{{ task.title }}</td>
+                            <td>
+                                <span
+                                    class="badge {% if task.priority == 'high' %}bg-danger{% elif task.priority == 'medium' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                    {{ {'high': '高', 'medium': '中', 'low': '低'}[task.priority] }}
+                                </span>
+                            </td>
+                            <td>
+                                <span
+                                    class="badge {% if task.status == 'completed' %}bg-success{% elif task.status == 'in_progress' %}bg-info{% else %}bg-warning text-dark{% endif %}">
+                                    {{ {'completed': '已完成', 'in_progress': '进行中', 'pending': '待处理'}[task.status] }}
+                                </span>
+                            </td>
+                            <td>{{ task.due_date.strftime('%Y-%m-%d') if task.due_date else '无截止日期' }}</td>
+                            <td>{{ task.project.name if task.project else '无项目' }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-outline-primary edit-task"
+                                        data-bs-toggle="modal" data-bs-target="#editTaskModal"
+                                        data-task-id="{{ task.id }}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger delete-task"
+                                        data-bs-toggle="modal" data-bs-target="#deleteTaskModal"
+                                        data-task-id="{{ task.id }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-center">暂无任务，点击"新建任务"按钮创建</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 新建任务模态框 -->
+    <div class="modal fade" id="newTaskModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">新建任务</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="{{ url_for('tasks') }}">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">标题</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">描述</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="priority" class="form-label">优先级</label>
+                                <select class="form-select" id="priority" name="priority">
+                                    <option value="low">低</option>
+                                    <option value="medium" selected>中</option>
+                                    <option value="high">高</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="due_date" class="form-label">截止日期</label>
+                                <input type="date" class="form-control" id="due_date" name="due_date">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="project_id" class="form-label">项目</label>
+                            <select class="form-select" id="project_id" name="project_id">
+                                <option value="">无项目</option>
+                                {% for project in projects %}
+                                <option value="{{ project.id }}">{{ project.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="text-end">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                            <button type="submit" class="btn btn-primary">创建</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑任务模态框 -->
+    <div class="modal fade" id="editTaskModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">编辑任务</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" id="editTaskForm">
+                        <div class="mb-3">
+                            <label for="edit_title" class="form-label">标题</label>
+                            <input type="text" class="form-control" id="edit_title" name="title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_description" class="form-label">描述</label>
+                            <textarea class="form-control" id="edit_description" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="edit_priority" class="form-label">优先级</label>
+                                <select class="form-select" id="edit_priority" name="priority">
+                                    <option value="low">低</option>
+                                    <option value="medium">中</option>
+                                    <option value="high">高</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edit_due_date" class="form-label">截止日期</label>
+                                <input type="date" class="form-control" id="edit_due_date" name="due_date">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="edit_status" class="form-label">状态</label>
+                                <select class="form-select" id="edit_status" name="status">
+                                    <option value="pending">待处理</option>
+                                    <option value="in_progress">进行中</option>
+                                    <option value="completed">已完成</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edit_project_id" class="form-label">项目</label>
+                                <select class="form-select" id="edit_project_id" name="project_id">
+                                    <option value="">无项目</option>
+                                    {% for project in projects %}
+                                    <option value="{{ project.id }}">{{ project.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                            <button type="submit" class="btn btn-primary">保存</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 删除任务确认模态框 -->
+    <div class="modal fade" id="deleteTaskModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">确认删除</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>确定要删除这个任务吗？此操作无法撤销。</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <form method="post" id="deleteTaskForm">
+                        <button type="submit" class="btn btn-danger">删除</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // 任务筛选功能
+        const statusFilter = document.getElementById('statusFilter');
+        const priorityFilter = document.getElementById('priorityFilter');
+        const searchInput = document.getElementById('searchTask');
+        const taskRows = document.querySelectorAll('.task-row');
+
+        function filterTasks() {
+            const statusValue = statusFilter.value;
+            const priorityValue = priorityFilter.value;
+            const searchValue = searchInput.value.toLowerCase();
+
+            taskRows.forEach(row => {
+                const status = row.dataset.status;
+                const priority = row.dataset.priority;
+                const title = row.cells[0].textContent.toLowerCase();
+
+                const statusMatch = statusValue === 'all' || status === statusValue;
+                const priorityMatch = priorityValue === 'all' || priority === priorityValue;
+                const searchMatch = title.includes(searchValue);
+
+                if (statusMatch && priorityMatch && searchMatch) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        statusFilter.addEventListener('change', filterTasks);
+        priorityFilter.addEventListener('change', filterTasks);
+        searchInput.addEventListener('input', filterTasks);
+
+        // 编辑任务
+        const editButtons = document.querySelectorAll('.edit-task');
+        editButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const taskId = this.dataset.taskId;
+                const row = this.closest('tr');
+
+                document.getElementById('edit_title').value = row.cells[0].textContent;
+                document.getElementById('edit_priority').value = row.dataset.priority;
+                document.getElementById('edit_status').value = row.dataset.status;
+
+                // 设置表单提交URL
+                document.getElementById('editTaskForm').action = `/tasks/${taskId}`;
+            });
+        });
+
+        // 删除任务
+        const deleteButtons = document.querySelectorAll('.delete-task');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const taskId = this.dataset.taskId;
+                document.getElementById('deleteTaskForm').action = `/tasks/${taskId}/delete`;
+            });
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

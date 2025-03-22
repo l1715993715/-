@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+
+{% block title %}项目管理 - 任务管理系统{% endblock %}
+
+{% block content %}
+<div class="projects-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>项目管理</h1>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newProjectModal">
+            <i class="fas fa-plus me-1"></i> 新建项目
+        </button>
+    </div>
+
+    <!-- 项目列表 -->
+    <div class="row">
+        {% if projects %}
+        {% for project in projects %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ project.name }}</h5>
+                    <p class="card-text text-muted">{{ project.description[:100] + '...' if project.description and
+                        project.description|length > 100 else project.description or '无描述' }}</p>
+                    <div class="d-flex justify-content-between mt-3">
+                        <div>
+                            <span class="badge bg-info">{{ project.tasks|length }} 个任务</span>
+                            <span class="badge bg-secondary">{{ project.members|length }} 名成员</span>
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-primary edit-project" data-bs-toggle="modal"
+                                data-bs-target="#editProjectModal" data-project-id="{{ project.id }}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            {% if project.owner_id == session.get('user_id') %}
+                            <button type="button" class="btn btn-outline-danger delete-project" data-bs-toggle="modal"
+                                data-bs-target="#deleteProjectModal" data-project-id="{{ project.id }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <small class="text-muted">创建于 {{ project.created_at.strftime('%Y-%m-%d') }}</small>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                暂无项目，点击"新建项目"按钮创建
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- 新建项目模态框 -->
+    <div class="modal fade" id="newProjectModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">新建项目</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="{{ url_for('projects') }}">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">项目名称</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">项目描述</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">项目成员</label>
+                            <div class="card">
+                                <div class="card-body" style="max-height: 200px; overflow-y: auto;">
+                                    {% for user in users %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="members"
+                                            value="{{ user.id }}" id="member{{ user.id }}">
+                                        <label class="form-check-label" for="member{{ user.id }}">
+                                            {{ user.username }}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                            <button type="submit" class="btn btn-primary">创建</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑项目模态框 -->
+    <div class="modal fade" id="editProjectModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">编辑项目</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" id="editProjectForm">
+                        <div class="mb-3">
+                            <label for="edit_name" class="form-label">项目名称</label>
+                            <input type="text" class="form-control" id="edit_name" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_description" class="form-label">项目描述</label>
+                            <textarea class="form-control" id="edit_description" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">项目成员</label>
+                            <div class="card">
+                                <div class="card-body" style="max-height: 200px; overflow-y: auto;"
+                                    id="editMembersContainer">
+                                    <!-- 成员复选框将通过JavaScript动态添加 -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                            <button type="submit" class="btn btn-primary">保存</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 删除项目确认模态框 -->
+    <div class="modal fade" id="deleteProjectModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">确认删除</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>确定要删除这个项目吗？此操作将同时删除项目下的所有任务，且无法撤销。</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <form method="post" id="deleteProjectForm">
+                        <button type="submit" class="btn btn-danger">删除</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // 编辑项目
+        const editButtons = document.querySelectorAll('.edit-project');
+        editButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const projectId = this.dataset.projectId;
+                // 这里应该通过AJAX获取项目详情，简化版中省略
+                // 设置表单提交URL
+                document.getElementById('editProjectForm').action = `/projects/${projectId}`;
+            });
+        });
+
+        // 删除项目
+        const deleteButtons = document.querySelectorAll('.delete-project');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const projectId = this.dataset.projectId;
+                document.getElementById('deleteProjectForm').action = `/projects/${projectId}/delete`;
+            });
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

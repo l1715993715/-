@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}首页 - 任务管理系统{% endblock %}
+
+{% block content %}
+<div class="landing-page">
+    <!-- 简化的英雄区域 -->
+    <div class="hero-section py-5">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <h1 class="fw-bold">高效管理任务，提升团队协作</h1>
+                <p class="lead mb-4">一站式解决方案，让团队工作更高效</p>
+                {% if not session.get('user_id') %}
+                <a href="{{ url_for('register') }}" class="btn btn-primary me-2">立即注册</a>
+                <a href="{{ url_for('login') }}" class="btn btn-outline-secondary">登录</a>
+                {% else %}
+                <a href="{{ url_for('dashboard') }}" class="btn btn-primary">进入工作台</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 简化的功能区域 -->
+    <div class="features-section py-5 bg-light rounded">
+        <h2 class="text-center mb-4">核心功能</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-tasks fa-2x text-primary mb-3"></i>
+                        <h5>任务管理</h5>
+                        <p class="card-text">创建、分配和跟踪任务进度，设置优先级和截止日期</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-project-diagram fa-2x text-success mb-3"></i>
+                        <h5>项目协作</h5>
+                        <p class="card-text">组建项目团队，共享任务和资源，实时查看项目进度</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-chart-line fa-2x text-warning mb-3"></i>
+                        <h5>数据统计</h5>
+                        <p class="card-text">直观的数据统计，帮助您了解工作进度和团队效率</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 简化的CTA区域 -->
+    <div class="cta-section py-5 text-center">
+        <h2 class="mb-3">准备好提升您的工作效率了吗？</h2>
+        <p class="mb-4">立即注册，开始使用我们的任务管理系统</p>
+        {% if not session.get('user_id') %}
+        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">免费注册</a>
+        {% else %}
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg">进入工作台</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

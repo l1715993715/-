@@ -1,0 +1,49 @@
+/* 全局样式 */
+body {
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f8f9fc;
+    color: #333;
+}
+
+/* 卡片样式 */
+.card {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+    margin-bottom: 20px;
+}
+
+.card-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+    padding: 15px 20px;
+}
+
+/* 导航栏样式 */
+.navbar {
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+/* 首页样式 */
+.hero-section {
+    padding: 50px 0;
+}
+
+/* 仪表盘样式 */
+.dashboard-container,
+.tasks-container,
+.projects-container {
+    margin-top: 20px;
+}
+
+/* 任务和项目卡片样式 */
+.task-row:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .hero-section {
+        text-align: center;
+    }
+}
